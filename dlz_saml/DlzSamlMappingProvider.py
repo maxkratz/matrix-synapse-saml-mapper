@@ -63,7 +63,8 @@ class DlzSamlMappingProvider:
                 available, but are not necessary
         """
         # return {"uid", config.mxid_source_attribute}, {"displayName", "email"}
-        return {"uid", config.mxid_source_attribute}, {"surname", "givenName", "mail"}
+        # return {"uid", config.mxid_source_attribute}, {"surname", "givenName", "mail"}
+        return {"uid", config.mxid_source_attribute, "surname", "givenName", "mail"}, {"ou"}
 
     def get_remote_user_id(
             self, saml_response: saml2.response.AuthnResponse, client_redirect_url: str
