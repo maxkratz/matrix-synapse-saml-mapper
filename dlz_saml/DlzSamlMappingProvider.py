@@ -24,7 +24,7 @@ class DlzSamlMappingProvider:
     __license__ = "I hate the HRZ for not providing displayName - License"
     __status__ = "Development"
 
-    def __init__(self, parsed_config: SamlConfig):
+    def __init__(self, parsed_config: SamlConfig, module_api):
         """
         Args:
             parsed_config - A configuration object that is the return value of the parse_config 
