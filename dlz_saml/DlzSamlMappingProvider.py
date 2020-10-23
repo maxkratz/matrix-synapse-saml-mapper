@@ -9,18 +9,35 @@ from typing import Set, Tuple
 # This class only exists, because the HRZ of TU Darmstadt can not provide a
 # 'displayName' value via IDP.
 #
+# It does not log to the synapse logger nor does it throw the expected errors
+# from the synapse package. Please keep in mind, that this code might crash unexpectedly,
+# but you can always check the homeservers log file for python error output.
+#
 
 
 @attr.s
 class SamlConfig:
+    """
+    Used to configure the Matrix id source attribute.
+    This value will later be passed by the homeserver.yml configuration file.
+    """
     mxid_source_attribute = attr.ib()
 
 
 class MappingException(Exception):
-    """Used to catch errors when mapping the SAML2 response to a user."""
+    """
+    Used to catch errors when mapping the SAML2 response to a user.
+    Maybe this will lead to incompatibility with the class within the synapse package,
+    but it works for now.
+    """
 
 
 class DlzSamlMappingProvider:
+    """
+    This is the heart of our custom mapping provider. Its purpose is to concatenate the attribute
+    "givenName" and "surname" of our HRZs IDP to "<givenName> <surname>".
+    """
+
     __author__ = "Maximilian Kratz"
     __email__ = "mkratz@fs-etit.de"
     __version__ = "0.0.1"
@@ -29,6 +46,8 @@ class DlzSamlMappingProvider:
 
     def __init__(self, parsed_config: SamlConfig, module_api):
         """
+        Initializes the class with a given parsed SamlConfig.
+
         Args:
             parsed_config: A configuration object that is the return value of the parse_config
                 method. You should set any configuration options needed by the module here.
@@ -39,6 +58,9 @@ class DlzSamlMappingProvider:
     @staticmethod
     def parse_config(config: dict) -> SamlConfig:
         """
+        Parses a given dictionary (config) to our own SamlConfig format. The dictionary is the
+        output of the config section in homeserver.yml/saml2...
+
         Args:
             config: A dict representing the parsed content of the 
                 saml_config.user_mapping_provider.config homeserver config option. Runs on
@@ -47,29 +69,31 @@ class DlzSamlMappingProvider:
         Returns:
             SamlConfig: A custom config object for this module
         """
-        # Parse config options and use defaults where necessary
+        # Parse config options and use defaults ("uid") where necessary
         mxid_source_attribute = config.get("mxid_source_attribute", "uid")
         return SamlConfig(mxid_source_attribute)
 
     @staticmethod
     def get_saml_attributes(config: SamlConfig) -> Tuple[Set[str], Set[str]]:
         """
+        Returns the saml attributes that this mapping provider will need. This contains
+        mandatory as well as "nice-to-have" attributes.
+
         Args:
             config: A object resulting from a call to parse_config.
         Returns:
-            The first set equates to the saml auth response
-                attributes that are required for the module to function, whereas the
-                second set consists of those attributes which can be used if
-                available, but are not necessary
+            The first set equates to the saml auth response attributes that are required for the
+            module to function, whereas the second set consists of those attributes which can be
+            used if available, but are not necessary
         """
-        # return {"uid", config.mxid_source_attribute}, {"displayName", "email"}
-        # return {"uid", config.mxid_source_attribute}, {"surname", "givenName", "mail"}
         return {config.mxid_source_attribute, "surname", "givenName", "mail"}, {"ou"}
 
     def get_remote_user_id(
             self, saml_response: saml2.response.AuthnResponse, client_redirect_url: str
     ) -> str:
         """
+        Extracts the user id from a given saml2.response.AuthnResponse object.
+
         Args:
             saml_response: A saml2.response.AuthnResponse object to extract user information from.
             client_redirect_url: A string, the URL that the client will be redirected to. This one will not be used.
@@ -86,6 +110,8 @@ class DlzSamlMappingProvider:
             client_redirect_url
     ) -> dict:
         """
+        Maps the saml response attributes to user attributes for synapse.
+
         Args:
             saml_response: A saml2.response.AuthnResponse object to extract user information from.
             failures: An int that represents the amount of times the returned mxid localpart
