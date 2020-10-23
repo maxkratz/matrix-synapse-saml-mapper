@@ -1,7 +1,7 @@
 import attr
-import saml2
+# import saml2
 import saml2.response
-from typing import Dict, Set, Tuple
+from typing import Set, Tuple
 # from synapse.config import ConfigError
 
 # See https://github.com/matrix-org/synapse/blob/master/docs/sso_mapping_providers.md
@@ -10,7 +10,7 @@ from typing import Dict, Set, Tuple
 @attr.s
 class SamlConfig:
     mxid_source_attribute = attr.ib()
-    mxid_mapper = attr.ib()
+    # mxid_mapper = attr.ib()
 
 
 class MappingException(Exception):
@@ -31,7 +31,7 @@ class DlzSamlMappingProvider:
                 method. You should set any configuration options needed by the module here.
         """
         self._mxid_source_attribute = parsed_config.mxid_source_attribute
-        self._mxid_mapper = parsed_config.mxid_mapper
+        # self._mxid_mapper = parsed_config.mxid_mapper
 
     @staticmethod
     def parse_config(config: dict) -> SamlConfig:
@@ -46,7 +46,7 @@ class DlzSamlMappingProvider:
         """
         # Parse config options and use defaults where necessary
         mxid_source_attribute = config.get("mxid_source_attribute", "uid")
-        mapping_type = config.get("mxid_mapping", "hexencode")
+        # mapping_type = config.get("mxid_mapping", "hexencode")
 
         # Retrieve the associating mapping function
         # try:
@@ -58,7 +58,8 @@ class DlzSamlMappingProvider:
         #     )
 
         # return SamlConfig(mxid_source_attribute, mxid_mapper)
-        return SamlConfig(mxid_source_attribute, None)
+        # return SamlConfig(mxid_source_attribute, None)
+        return SamlConfig(mxid_source_attribute)
 
     @staticmethod
     def get_saml_attributes(config: SamlConfig) -> Tuple[Set[str], Set[str]]:
@@ -122,16 +123,22 @@ class DlzSamlMappingProvider:
                 400, "%s not in SAML2 response" % (self._mxid_source_attribute,)
             )
 
-            # Use the configured mapper for this mxid_source
-        base_mxid_localpart = self._mxid_mapper(mxid_source)
+        # Use the configured mapper for this mxid_source
+        # base_mxid_localpart = self._mxid_mapper(mxid_source)
+        base_mxid_localpart = mxid_source
 
         # Append suffix integer if last call to this function failed to produce
         # a usable mxid
         localpart = base_mxid_localpart + (str(failures) if failures else "")
 
+        # Concatenate names (custom stuff)
+        givenname = saml_response.ava.get("givenName", [None])[0]
+        surname = saml_response.ava.get("surname", [None])[0]
+
         # Retrieve the display name from the saml response
         # If displayname is None, the mxid_localpart will be used instead
-        displayname = saml_response.ava.get("displayName", [None])[0]
+        # displayname = saml_response.ava.get("displayName", [None])[0]
+        displayname = givenname + " " + surname
 
         # Retrieve any emails present in the saml response
         emails = saml_response.ava.get("email", [])
