@@ -1,4 +1,5 @@
 import attr
+import psycopg2
 import saml2.response
 from typing import Set, Tuple
 
@@ -40,7 +41,7 @@ class DlzSamlMappingProvider:
 
     __author__ = "Maximilian Kratz"
     __email__ = "mkratz@fs-etit.de"
-    __version__ = "0.0.1"
+    __version__ = "0.0.2"
     __license__ = "'I hate the HRZ for not providing displayName'-License"
     __status__ = "Development"
 
@@ -149,6 +150,43 @@ class DlzSamlMappingProvider:
 
         # Retrieve any emails present in the saml response
         emails = saml_response.ava.get("email", [])
+
+        #
+        # Save the ou to our custom database.
+        #
+        ou = saml_response.ava.get("ou", [None])
+
+        # Convert ou array from saml_response to one string.
+        # Fields are separated with commas.
+        def join_l(l, sep):
+            li = iter(l)
+            string = str(next(li))
+            for i in li:
+                string += str(sep) + str(i)
+            return string
+
+        ou_str = join_l(ou, ',')
+
+        try:
+            conn = psycopg2.connect(
+                database="ou",
+                user="ou_user",
+                password="<secret>>",
+                host="chat-db.dek.e-technik.tu-darmstadt.de",
+                port="5432")
+
+            cur = conn.cursor()
+            cur.execute(
+                """INSERT INTO user_external_ous (tuid, ou) VALUES (%s, %s);""",
+                (mxid_source, ou_str)
+            )
+
+            conn.commit()
+            conn.close()
+        except:
+            raise Exception(
+                "Connection to our custom DLZ database could not be established and/or update/insert failed."
+            )
 
         return {
             "mxid_localpart": localpart,
