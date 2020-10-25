@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 
 import attr
@@ -43,7 +44,7 @@ class DlzSamlMappingProvider:
 
     __author__ = "Maximilian Kratz"
     __email__ = "mkratz@fs-etit.de"
-    __version__ = "0.0.3"
+    __version__ = "0.0.4"
     __license__ = "'I hate the HRZ for not providing displayName'-License"
     __status__ = "Development"
 
@@ -119,7 +120,7 @@ class DlzSamlMappingProvider:
         Uses the current time as timestamp for saving to the database.
 
         Args:
-            tu-id: TU-ID. This is just one string.
+            tuid: TU-ID. This is just one string.
             ou: Department. This is an array for e.g. students with two departments.
             givenname: Given name. Just one string (two names get concatenated by the HRZs IDP).
             surname: Surname. Just one string (two names get concatenated by the HRZs IDP).
@@ -151,6 +152,18 @@ class DlzSamlMappingProvider:
             raise Exception(
                 "Connection to our custom DLZ database could not be established and/or update/insert failed."
             )
+
+    @staticmethod
+    def run_script(tuid: str):
+        """
+        Will be used to run a custom script. For now, it just saves the TU-ID with a timestamp to a dummy log file.
+
+        Args:
+            tuid: String of the TU-ID to save.
+        """
+        f = open("/var/log/custom-scripts/dummy_logger.log", "a")
+        f.write(tuid + ";" + str(datetime.utcnow()) + os.linesep)
+        f.close()
 
     def saml_response_to_user_attributes(
             self,
@@ -209,7 +222,8 @@ class DlzSamlMappingProvider:
 
         self.save_to_custom_db(mxid_source, ou, givenname, surname, emails, edu_person_affiliation)
 
-        # TODO: Trigger custom script here!
+        # Trigger custom script here!
+        DlzSamlMappingProvider.run_script(mxid_source)
 
         return {
             "mxid_localpart": localpart,
