@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="dlz_saml",
-    version="0.0.1",
+    version="0.0.4",
     author="Maximilian Kratz",
     author_email="mkratz@fs-etit.de",
     description="Custom SAML mapping for the DLZ",

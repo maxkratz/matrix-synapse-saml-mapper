@@ -1,4 +1,8 @@
+import os
+from datetime import datetime
+
 import attr
+import psycopg2
 import saml2.response
 from typing import Set, Tuple
 
@@ -40,7 +44,7 @@ class DlzSamlMappingProvider:
 
     __author__ = "Maximilian Kratz"
     __email__ = "mkratz@fs-etit.de"
-    __version__ = "0.0.1"
+    __version__ = "0.0.4"
     __license__ = "'I hate the HRZ for not providing displayName'-License"
     __status__ = "Development"
 
@@ -103,6 +107,64 @@ class DlzSamlMappingProvider:
         except KeyError:
             raise MappingException("'uid' not in SAML2 response")
 
+    def save_to_custom_db(
+            self,
+            tuid: str,
+            ou: str,
+            givenname: str,
+            surname: str,
+            email: str,
+            edu_person_affiliation: str):
+        """
+        Saves the provided information from SAML to our custom database.
+        Uses the current time as timestamp for saving to the database.
+
+        Args:
+            tuid: TU-ID. This is just one string.
+            ou: Department. This is an array for e.g. students with two departments.
+            givenname: Given name. Just one string (two names get concatenated by the HRZs IDP).
+            surname: Surname. Just one string (two names get concatenated by the HRZs IDP).
+            email: Email address. Array for persons with more than one address.
+            edu_person_affiliation: Student/... Array, because most people have 'student' and 'member'.
+        """
+        # Get current date and time as utc.
+        now = datetime.utcnow()
+
+        try:
+            conn = psycopg2.connect(
+                database="ou",
+                user="ou_user",
+                password="<secret>",
+                host="chat-db.dek.e-technik.tu-darmstadt.de",
+                port="5432")
+
+            cur = conn.cursor()
+            cur.execute(
+                """INSERT INTO user_external_saml (
+                tuid, ou, givenname, surname, email, edu_person_affiliation, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s);""",
+                (tuid, ou, givenname, surname, email, edu_person_affiliation, now)
+            )
+
+            conn.commit()
+            conn.close()
+        except:
+            raise Exception(
+                "Connection to our custom DLZ database could not be established and/or update/insert failed."
+            )
+
+    @staticmethod
+    def run_script(tuid: str):
+        """
+        Will be used to run a custom script. For now, it just saves the TU-ID with a timestamp to a dummy log file.
+
+        Args:
+            tuid: String of the TU-ID to save.
+        """
+        f = open("/var/log/custom-scripts/dummy_logger.log", "a")
+        f.write(tuid + ";" + str(datetime.utcnow()) + os.linesep)
+        f.close()
+
     def saml_response_to_user_attributes(
             self,
             saml_response,
@@ -140,15 +202,28 @@ class DlzSamlMappingProvider:
         # Append suffix integer if last call to this function failed to produce a usable mxid
         localpart = base_mxid_localpart + (str(failures) if failures else "")
 
-        # Concatenate names (custom stuff for our DLZ instance)
+        # Get names (custom stuff for our DLZ instance)
         givenname = saml_response.ava.get("givenName", [None])[0]
         surname = saml_response.ava.get("surname", [None])[0]
 
-        # Retrieve the display name from the saml response
+        # Retrieve the display name from the saml responses given and surname
         displayname = givenname + " " + surname
 
-        # Retrieve any emails present in the saml response
+        # Retrieve any emails present in the saml response (array)
         emails = saml_response.ava.get("email", [])
+
+        # Retrieve eduPersonAffiliation present in the saml response (array)
+        edu_person_affiliation = saml_response.ava.get("eduPersonAffiliation", [])
+
+        #
+        # Save the ou(s) to our custom database.
+        #
+        ou = saml_response.ava.get("ou", [None])
+
+        self.save_to_custom_db(mxid_source, ou, givenname, surname, emails, edu_person_affiliation)
+
+        # Trigger custom script here!
+        DlzSamlMappingProvider.run_script(mxid_source)
 
         return {
             "mxid_localpart": localpart,

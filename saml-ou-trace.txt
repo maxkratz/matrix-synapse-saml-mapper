@@ -1,0 +1,8 @@
+</saml2:Attribute>
+            <saml2:Attribute FriendlyName="ou"
+                             Name="ou"
+                             NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"
+                             >
+                <saml2:AttributeValue>FB18</saml2:AttributeValue>
+                <saml2:AttributeValue>SB26</saml2:AttributeValue>
+</saml2:Attribute>
