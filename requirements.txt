@@ -1,0 +1,6 @@
+pylint
+pylint-fail-under
+attr
+attrs
+psycopg2
+pysaml2

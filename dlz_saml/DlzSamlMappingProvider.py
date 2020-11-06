@@ -1,10 +1,14 @@
+"""
+This module will be used to map custom saml attributes.
+"""
+
 import os
 from datetime import datetime
+from typing import Set, Tuple
 
 import attr
 import psycopg2
 import saml2.response
-from typing import Set, Tuple
 
 
 # Heavily based on:
@@ -66,7 +70,7 @@ class DlzSamlMappingProvider:
         output of the config section in homeserver.yml/saml2...
 
         Args:
-            config: A dict representing the parsed content of the 
+            config: A dict representing the parsed content of the
                 saml_config.user_mapping_provider.config homeserver config option. Runs on
                 homeserver startup. Providers should extract and validate any option values they
                 need here.
@@ -99,8 +103,10 @@ class DlzSamlMappingProvider:
         Extracts the user id from a given saml2.response.AuthnResponse object.
 
         Args:
-            saml_response: A saml2.response.AuthnResponse object to extract user information from.
-            client_redirect_url: A string, the URL that the client will be redirected to. This one will not be used.
+            saml_response: A saml2.response.AuthnResponse object to extract user information
+            from.
+            client_redirect_url: A string, the URL that the client will be redirected to. This one
+            will not be used.
         """
         try:
             return saml_response.ava["uid"][0]
@@ -125,7 +131,8 @@ class DlzSamlMappingProvider:
             givenname: Given name. Just one string (two names get concatenated by the HRZs IDP).
             surname: Surname. Just one string (two names get concatenated by the HRZs IDP).
             email: Email address. Array for persons with more than one address.
-            edu_person_affiliation: Student/... Array, because most people have 'student' and 'member'.
+            edu_person_affiliation: Student/... Array, because most people have 'student' and
+            'member'.
         """
         # Get current date and time as utc.
         now = datetime.utcnow()
@@ -150,13 +157,15 @@ class DlzSamlMappingProvider:
             conn.close()
         except:
             raise Exception(
-                "Connection to our custom DLZ database could not be established and/or update/insert failed."
+                'Connection to our custom DLZ database could not be established and/or'
+                'update/insert failed.'
             )
 
     @staticmethod
     def run_script(tuid: str):
         """
-        Will be used to run a custom script. For now, it just saves the TU-ID with a timestamp to a dummy log file.
+        Will be used to run a custom script. For now, it just saves the TU-ID with a timestamp to a
+        dummy log file.
 
         Args:
             tuid: String of the TU-ID to save.
@@ -183,7 +192,8 @@ class DlzSamlMappingProvider:
                 homeserver, this method will be called again with the same parameters but with
                 failures=1. The method should then return a different mxid_localpart value, such as
                 john.doe1.
-            client_redirect_url: A string, the URL that the client will be redirected to. This one will not be used.
+            client_redirect_url: A string, the URL that the client will be redirected to. This one
+            will not be used.
         Returns:
             dict: A dict containing new user attributes. Possible keys:
                 * mxid_localpart (str): Required. The localpart of the user's mxid
