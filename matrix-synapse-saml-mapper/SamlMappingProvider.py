@@ -40,7 +40,7 @@ class MappingException(Exception):
     """
 
 
-class DlzSamlMappingProvider:
+class SamlMappingProvider:
     """
     This is the heart of our custom mapping provider. Its purpose is to concatenate the attribute
     "givenName" and "surname" of our HRZs IDP to "<givenName> <surname>".
@@ -48,7 +48,7 @@ class DlzSamlMappingProvider:
 
     __author__ = "Maximilian Kratz"
     __email__ = "mkratz@fs-etit.de"
-    __version__ = "0.0.4"
+    __version__ = "0.0.5"
     __license__ = "'I hate the HRZ for not providing displayName'-License"
     __status__ = "Development"
 
