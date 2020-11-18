@@ -13,7 +13,7 @@ before_script:
 pylint:
     stage: lint
     script:
-        - pylint-fail-under --fail_under 7.0 -d pep8 dlz_saml/*.py
+        - pylint-fail-under --fail_under 7.0 -d pep8 matrix_synapse_saml_mapper/*.py
 
 build:
     stage: build
@@ -25,7 +25,7 @@ build:
         paths:
             - build
             - dist
-            - dlz_saml.egg-info
+            - matrix_synapse_saml_mapper.egg-info
 
 install:
     stage: test

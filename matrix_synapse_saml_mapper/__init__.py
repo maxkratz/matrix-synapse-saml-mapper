@@ -17,4 +17,4 @@
 This module will be used to initialize custom saml mapping attributes.
 """
 
-from dlz-saml-mapping-provider.SamlMappingProvider import SamlMappingProvider
+from matrix_synapse_saml_mapper.saml_mapping_provider import SamlMappingProvider

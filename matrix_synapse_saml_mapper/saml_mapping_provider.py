@@ -248,7 +248,7 @@ class SamlMappingProvider:
         self.save_to_custom_db(mxid_source, ou, givenname, surname, emails, edu_person_affiliation)
 
         # Trigger custom script here!
-        DlzSamlMappingProvider.run_script(mxid_source)
+        SamlMappingProvider.run_script(mxid_source)
 
         return {
             "mxid_localpart": localpart,
