@@ -1,3 +1,18 @@
+# -*- coding: utf-8 -*-
+# Copyright 2020 Max Kratz
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
 This module will be used to map custom saml attributes.
 """
@@ -40,7 +55,7 @@ class MappingException(Exception):
     """
 
 
-class DlzSamlMappingProvider:
+class SamlMappingProvider:
     """
     This is the heart of our custom mapping provider. Its purpose is to concatenate the attribute
     "givenName" and "surname" of our HRZs IDP to "<givenName> <surname>".
@@ -48,8 +63,8 @@ class DlzSamlMappingProvider:
 
     __author__ = "Maximilian Kratz"
     __email__ = "mkratz@fs-etit.de"
-    __version__ = "0.0.4"
-    __license__ = "'I hate the HRZ for not providing displayName'-License"
+    __version__ = "0.0.5"
+    __license__ = "Apache License 2.0"
     __status__ = "Development"
 
     def __init__(self, parsed_config: SamlConfig, module_api):
@@ -233,7 +248,7 @@ class DlzSamlMappingProvider:
         self.save_to_custom_db(mxid_source, ou, givenname, surname, emails, edu_person_affiliation)
 
         # Trigger custom script here!
-        DlzSamlMappingProvider.run_script(mxid_source)
+        SamlMappingProvider.run_script(mxid_source)
 
         return {
             "mxid_localpart": localpart,
