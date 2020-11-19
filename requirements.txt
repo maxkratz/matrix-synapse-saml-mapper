@@ -4,3 +4,5 @@ attr
 attrs
 psycopg2
 pysaml2
+setuptools
+PyYAML

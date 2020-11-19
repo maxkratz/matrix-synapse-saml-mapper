@@ -24,7 +24,7 @@ from typing import Set, Tuple
 import attr
 import psycopg2
 import saml2.response
-
+import yaml
 
 # Heavily based on:
 # https://github.com/matrix-org/synapse/blob/master/docs/sso_mapping_providers.md
@@ -37,8 +37,15 @@ import saml2.response
 # but you can always check the homeservers log file for python error output.
 
 
+module_config = yaml.safe_load(open("../module_config.yml"))
+db_config = module_config.get("db")
+log_config = module_config.get("log")
+
+
 @attr.s
 class SamlConfig:
+    # This is just a config attribute, thus it does not need public methods.
+    # pylint: disable=R0903
     """
     Used to configure the Matrix id source attribute.
     This value will later be passed by the homeserver.yml configuration file.
@@ -62,6 +69,8 @@ def save_to_custom_db(
         email: str,
         edu_person_affiliation: str
 ):
+    # Our database needs that much input values.
+    # pylint: disable=R0913
     """
     Saves the provided information from SAML to our custom database.
     Uses the current time as timestamp for saving to the database.
@@ -80,11 +89,12 @@ def save_to_custom_db(
 
     try:
         conn = psycopg2.connect(
-            database="ou",
-            user="ou_user",
-            password="<secret>",
-            host="chat-db.dek.e-technik.tu-darmstadt.de",
-            port="5432")
+            database=db_config.get("database"),
+            user=db_config.get("user"),
+            password=db_config.get("password"),
+            host=db_config.get("host"),
+            port=db_config.get("port")
+        )
 
         cur = conn.cursor()
         cur.execute(
@@ -111,7 +121,7 @@ def run_script(tuid: str):
     Args:
         tuid: String of the TU-ID to save.
     """
-    file = open("/var/log/custom-scripts/dummy_logger.log", "a")
+    file = open(log_config.get("path"), "a")
     file.write(tuid + ";" + str(datetime.utcnow()) + os.linesep)
     file.close()
 
@@ -175,6 +185,8 @@ class SamlMappingProvider:
     def get_remote_user_id(
             self, saml_response: saml2.response.AuthnResponse, client_redirect_url: str
     ) -> str:
+        # This method declaration is given by synapses documentation.
+        # pylint: disable=R0201
         """
         Extracts the user id from a given saml2.response.AuthnResponse object.
 
