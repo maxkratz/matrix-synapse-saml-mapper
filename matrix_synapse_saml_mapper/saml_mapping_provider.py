@@ -56,18 +56,19 @@ class MappingException(Exception):
 
 def save_to_custom_db(
         tuid: str,
-        ou: str,
+        orga_unit: str,
         givenname: str,
         surname: str,
         email: str,
-        edu_person_affiliation: str):
+        edu_person_affiliation: str
+):
     """
     Saves the provided information from SAML to our custom database.
     Uses the current time as timestamp for saving to the database.
 
     Args:
         tuid: TU-ID. This is just one string.
-        ou: Department. This is an array for e.g. students with two departments.
+        orga_unit: Department. This is an array for e.g. students with two departments.
         givenname: Given name. Just one string (two names get concatenated by the HRZs IDP).
         surname: Surname. Just one string (two names get concatenated by the HRZs IDP).
         email: Email address. Array for persons with more than one address.
@@ -90,7 +91,7 @@ def save_to_custom_db(
             """INSERT INTO user_external_saml (
             tuid, ou, givenname, surname, email, edu_person_affiliation, created_at)
             VALUES (%s, %s, %s, %s, %s, %s, %s);""",
-            (tuid, ou, givenname, surname, email, edu_person_affiliation, now)
+            (tuid, orga_unit, givenname, surname, email, edu_person_affiliation, now)
         )
 
         conn.commit()
@@ -242,9 +243,11 @@ class SamlMappingProvider:
         #
         # Save the ou(s) to our custom database.
         #
-        ou = saml_response.ava.get("ou", [None])
+        orga_unit = saml_response.ava.get("ou", [None])
 
-        save_to_custom_db(mxid_source, ou, givenname, surname, emails, edu_person_affiliation)
+        save_to_custom_db(
+            mxid_source, orga_unit, givenname, surname, emails, edu_person_affiliation
+        )
 
         # Trigger custom script here!
         SamlMappingProvider.run_script(mxid_source)
