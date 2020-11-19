@@ -13,6 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+This file is used as a setup script for the package.
+"""
+
 import setuptools
 
 with open("README.md", "r") as fh:
@@ -29,6 +33,8 @@ setuptools.setup(
     url="https://github.com/maxkratz/matrix-synapse-saml-mapper",
     packages=setuptools.find_packages(),
     classifiers=[
+        "Development Status :: 4 - Beta",
+        "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
     ],

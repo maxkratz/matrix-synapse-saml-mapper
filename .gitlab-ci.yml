@@ -13,7 +13,7 @@ before_script:
 pylint:
     stage: lint
     script:
-        - pylint-fail-under --fail_under 7.0 -d pep8 matrix_synapse_saml_mapper/*.py
+        - pylint-fail-under --fail_under 7.0 -d pep8 matrix_synapse_saml_mapper/*.py setup.py
 
 build:
     stage: build
