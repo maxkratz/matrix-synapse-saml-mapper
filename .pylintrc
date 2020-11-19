@@ -1,0 +1,5 @@
+[MESSAGES CONTROL]
+
+# Disable the message for unused arguments, because the interfaces
+# are given by synapses implementation and/or documentation.
+disable = W0613

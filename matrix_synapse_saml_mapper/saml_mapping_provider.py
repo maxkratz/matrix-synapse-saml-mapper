@@ -44,6 +44,8 @@ log_config = module_config.get("log")
 
 @attr.s
 class SamlConfig:
+    # This is just a config attribute, thus it does not need public methods.
+    # pylint: disable=R0903
     """
     Used to configure the Matrix id source attribute.
     This value will later be passed by the homeserver.yml configuration file.
@@ -67,6 +69,8 @@ def save_to_custom_db(
         email: str,
         edu_person_affiliation: str
 ):
+    # Our database needs that much input values.
+    # pylint: disable=R0913
     """
     Saves the provided information from SAML to our custom database.
     Uses the current time as timestamp for saving to the database.
@@ -181,6 +185,8 @@ class SamlMappingProvider:
     def get_remote_user_id(
             self, saml_response: saml2.response.AuthnResponse, client_redirect_url: str
     ) -> str:
+        # This method declaration is given by synapses documentation.
+        # pylint: disable=R0201
         """
         Extracts the user id from a given saml2.response.AuthnResponse object.
 
