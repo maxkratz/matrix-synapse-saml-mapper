@@ -35,7 +35,6 @@ import saml2.response
 # It does not log to the synapse logger nor does it throw the expected errors
 # from the synapse package. Please keep in mind, that this code might crash unexpectedly,
 # but you can always check the homeservers log file for python error output.
-#
 
 
 @attr.s
@@ -53,6 +52,68 @@ class MappingException(Exception):
     Maybe this will lead to incompatibility with the class within the synapse package,
     but it works for now.
     """
+
+
+def save_to_custom_db(
+        tuid: str,
+        orga_unit: str,
+        givenname: str,
+        surname: str,
+        email: str,
+        edu_person_affiliation: str
+):
+    """
+    Saves the provided information from SAML to our custom database.
+    Uses the current time as timestamp for saving to the database.
+
+    Args:
+        tuid: TU-ID. This is just one string.
+        orga_unit: Department. This is an array for e.g. students with two departments.
+        givenname: Given name. Just one string (two names get concatenated by the HRZs IDP).
+        surname: Surname. Just one string (two names get concatenated by the HRZs IDP).
+        email: Email address. Array for persons with more than one address.
+        edu_person_affiliation: Student/... Array, because most people have 'student' and
+        'member'.
+    """
+    # Get current date and time as utc.
+    now = datetime.utcnow()
+
+    try:
+        conn = psycopg2.connect(
+            database="ou",
+            user="ou_user",
+            password="<secret>",
+            host="chat-db.dek.e-technik.tu-darmstadt.de",
+            port="5432")
+
+        cur = conn.cursor()
+        cur.execute(
+            """INSERT INTO user_external_saml (
+            tuid, ou, givenname, surname, email, edu_person_affiliation, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s);""",
+            (tuid, orga_unit, givenname, surname, email, edu_person_affiliation, now)
+        )
+
+        conn.commit()
+        conn.close()
+    except Exception as error:
+        raise Exception(
+            'Connection to our custom DLZ database could not be established and/or'
+            'update/insert failed.'
+        ) from error
+
+
+def run_script(tuid: str):
+    """
+    Will be used to run a custom script. For now, it just saves the TU-ID with a timestamp to a
+    dummy log file.
+
+    Args:
+        tuid: String of the TU-ID to save.
+    """
+    file = open("/var/log/custom-scripts/dummy_logger.log", "a")
+    file.write(tuid + ";" + str(datetime.utcnow()) + os.linesep)
+    file.close()
 
 
 class SamlMappingProvider:
@@ -125,69 +186,8 @@ class SamlMappingProvider:
         """
         try:
             return saml_response.ava["uid"][0]
-        except KeyError:
-            raise MappingException("'uid' not in SAML2 response")
-
-    def save_to_custom_db(
-            self,
-            tuid: str,
-            ou: str,
-            givenname: str,
-            surname: str,
-            email: str,
-            edu_person_affiliation: str):
-        """
-        Saves the provided information from SAML to our custom database.
-        Uses the current time as timestamp for saving to the database.
-
-        Args:
-            tuid: TU-ID. This is just one string.
-            ou: Department. This is an array for e.g. students with two departments.
-            givenname: Given name. Just one string (two names get concatenated by the HRZs IDP).
-            surname: Surname. Just one string (two names get concatenated by the HRZs IDP).
-            email: Email address. Array for persons with more than one address.
-            edu_person_affiliation: Student/... Array, because most people have 'student' and
-            'member'.
-        """
-        # Get current date and time as utc.
-        now = datetime.utcnow()
-
-        try:
-            conn = psycopg2.connect(
-                database="ou",
-                user="ou_user",
-                password="<secret>",
-                host="chat-db.dek.e-technik.tu-darmstadt.de",
-                port="5432")
-
-            cur = conn.cursor()
-            cur.execute(
-                """INSERT INTO user_external_saml (
-                tuid, ou, givenname, surname, email, edu_person_affiliation, created_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s);""",
-                (tuid, ou, givenname, surname, email, edu_person_affiliation, now)
-            )
-
-            conn.commit()
-            conn.close()
-        except:
-            raise Exception(
-                'Connection to our custom DLZ database could not be established and/or'
-                'update/insert failed.'
-            )
-
-    @staticmethod
-    def run_script(tuid: str):
-        """
-        Will be used to run a custom script. For now, it just saves the TU-ID with a timestamp to a
-        dummy log file.
-
-        Args:
-            tuid: String of the TU-ID to save.
-        """
-        f = open("/var/log/custom-scripts/dummy_logger.log", "a")
-        f.write(tuid + ";" + str(datetime.utcnow()) + os.linesep)
-        f.close()
+        except KeyError as key_error:
+            raise MappingException("'uid' not in SAML2 response") from key_error
 
     def saml_response_to_user_attributes(
             self,
@@ -217,10 +217,10 @@ class SamlMappingProvider:
         """
         try:
             mxid_source = saml_response.ava[self._mxid_source_attribute][0]
-        except KeyError:
+        except KeyError as key_error:
             raise AttributeError(
                 400, "%s not in SAML2 response" % (self._mxid_source_attribute,)
-            )
+            ) from key_error
 
         base_mxid_localpart = mxid_source
 
@@ -243,12 +243,14 @@ class SamlMappingProvider:
         #
         # Save the ou(s) to our custom database.
         #
-        ou = saml_response.ava.get("ou", [None])
+        orga_unit = saml_response.ava.get("ou", [None])
 
-        self.save_to_custom_db(mxid_source, ou, givenname, surname, emails, edu_person_affiliation)
+        save_to_custom_db(
+            mxid_source, orga_unit, givenname, surname, emails, edu_person_affiliation
+        )
 
         # Trigger custom script here!
-        SamlMappingProvider.run_script(mxid_source)
+        run_script(mxid_source)
 
         return {
             "mxid_localpart": localpart,
