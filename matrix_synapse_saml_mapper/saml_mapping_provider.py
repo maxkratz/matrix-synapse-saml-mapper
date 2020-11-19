@@ -24,7 +24,7 @@ from typing import Set, Tuple
 import attr
 import psycopg2
 import saml2.response
-
+import yaml
 
 # Heavily based on:
 # https://github.com/matrix-org/synapse/blob/master/docs/sso_mapping_providers.md
@@ -35,6 +35,9 @@ import saml2.response
 # It does not log to the synapse logger nor does it throw the expected errors
 # from the synapse package. Please keep in mind, that this code might crash unexpectedly,
 # but you can always check the homeservers log file for python error output.
+
+
+module_config = yaml.safe_load(open("../module_config.yml"))
 
 
 @attr.s
@@ -80,11 +83,12 @@ def save_to_custom_db(
 
     try:
         conn = psycopg2.connect(
-            database="ou",
-            user="ou_user",
-            password="<secret>",
-            host="chat-db.dek.e-technik.tu-darmstadt.de",
-            port="5432")
+            database=module_config.get("database"),
+            user=module_config.get("user"),
+            password=module_config.get("password"),
+            host=module_config.get("host"),
+            port=module_config.get("port")
+        )
 
         cur = conn.cursor()
         cur.execute(
