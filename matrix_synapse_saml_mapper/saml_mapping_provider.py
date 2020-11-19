@@ -103,6 +103,19 @@ def save_to_custom_db(
         ) from error
 
 
+def run_script(tuid: str):
+    """
+    Will be used to run a custom script. For now, it just saves the TU-ID with a timestamp to a
+    dummy log file.
+
+    Args:
+        tuid: String of the TU-ID to save.
+    """
+    file = open("/var/log/custom-scripts/dummy_logger.log", "a")
+    file.write(tuid + ";" + str(datetime.utcnow()) + os.linesep)
+    file.close()
+
+
 class SamlMappingProvider:
     """
     This is the heart of our custom mapping provider. Its purpose is to concatenate the attribute
@@ -176,19 +189,6 @@ class SamlMappingProvider:
         except KeyError as key_error:
             raise MappingException("'uid' not in SAML2 response") from key_error
 
-    @staticmethod
-    def run_script(tuid: str):
-        """
-        Will be used to run a custom script. For now, it just saves the TU-ID with a timestamp to a
-        dummy log file.
-
-        Args:
-            tuid: String of the TU-ID to save.
-        """
-        file = open("/var/log/custom-scripts/dummy_logger.log", "a")
-        file.write(tuid + ";" + str(datetime.utcnow()) + os.linesep)
-        file.close()
-
     def saml_response_to_user_attributes(
             self,
             saml_response,
@@ -250,7 +250,7 @@ class SamlMappingProvider:
         )
 
         # Trigger custom script here!
-        SamlMappingProvider.run_script(mxid_source)
+        run_script(mxid_source)
 
         return {
             "mxid_localpart": localpart,
