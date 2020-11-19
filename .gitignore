@@ -1,8 +1,9 @@
-
 .idea/
-
-build/
-
-dist/
-
-dlz_saml.egg-info/
+.vscode
+__pycache__/
+*.pyc
+/.eggs/
+/.idea/
+/build/
+/dist/
+/*.egg-info/
