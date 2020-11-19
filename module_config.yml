@@ -20,3 +20,6 @@ db:
     password: "<secret>"
     host: "db-host"
     port: "5432"
+
+log:
+    path: "/var/log/custom-scripts/dummy_logger.log"

@@ -38,6 +38,8 @@ import yaml
 
 
 module_config = yaml.safe_load(open("../module_config.yml"))
+db_config = module_config.get("db")
+log_config = module_config.get("log")
 
 
 @attr.s
@@ -83,11 +85,11 @@ def save_to_custom_db(
 
     try:
         conn = psycopg2.connect(
-            database=module_config.get("database"),
-            user=module_config.get("user"),
-            password=module_config.get("password"),
-            host=module_config.get("host"),
-            port=module_config.get("port")
+            database=db_config.get("database"),
+            user=db_config.get("user"),
+            password=db_config.get("password"),
+            host=db_config.get("host"),
+            port=db_config.get("port")
         )
 
         cur = conn.cursor()
@@ -115,7 +117,7 @@ def run_script(tuid: str):
     Args:
         tuid: String of the TU-ID to save.
     """
-    file = open("/var/log/custom-scripts/dummy_logger.log", "a")
+    file = open(log_config.get("path"), "a")
     file.write(tuid + ";" + str(datetime.utcnow()) + os.linesep)
     file.close()
 
