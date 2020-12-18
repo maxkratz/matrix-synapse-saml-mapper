@@ -3,22 +3,16 @@ kind: pipeline
 name: default
 
 steps:
-- name: setup-ci
-  image: python:3.6
-  commands:
-  - python --version
-  - pip install -r requirements.txt
-
 - name: lint
   image: python:3.6
   commands:
+  - &setup pip install -r requirements.txt
   - pylint-fail-under --fail_under 9.0 -d pep8 matrix_synapse_saml_mapper/*.py setup.py
-  depends_on:
-  - setup-ci
 
 - name: build
   image: python:3.6
   commands:
+  - *setup
   - python setup.py sdist bdist_wheel
   depends_on:
   - lint
@@ -26,6 +20,7 @@ steps:
 - name: test
   image: python:3.6
   commands:
+  - *setup
   - python setup.py install
   depends_on:
   - build
