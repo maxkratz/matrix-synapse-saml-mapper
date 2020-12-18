@@ -3,7 +3,7 @@ kind: pipeline
 name: default
 
 steps:
-- name: init
+- name: setup-ci
   image: python:3.6
   commands:
   - python --version
@@ -13,6 +13,8 @@ steps:
   image: python:3.6
   commands:
   - pylint-fail-under --fail_under 9.0 -d pep8 matrix_synapse_saml_mapper/*.py setup.py
+  depends_on:
+  - setup-ci
 
 - name: build
   image: python:3.6
