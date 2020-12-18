@@ -1,5 +1,7 @@
 # Matrix Synapse SAML Mapper
 
+[![Build Status](https://github.ci.maxkratz.com/api/badges/maxkratz/matrix-synapse-saml-mapper/status.svg)](https://github.ci.maxkratz.com/maxkratz/matrix-synapse-saml-mapper)
+
 A Synapse plugin module which allows administrators to ...
 * ... concatenate and/or modify provided SAML attributes,
 * ... log registrations to a custom logfile and
