@@ -1,8 +1,9 @@
-pylint
-pylint-fail-under
-attr
-attrs
-psycopg2
-pysaml2
+pylint>=2.6.0
+pylint-fail-under>=0.3.0
+attr>=0.3.1
+attrs>=19.3.0
+psycopg2>=2.8.6
+pysaml2>=6.3.0
+PyYAML>=5.3
 setuptools
-PyYAML
+wheel
