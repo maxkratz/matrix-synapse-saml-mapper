@@ -7,8 +7,10 @@ A Synapse plugin module which allows administrators to ...
 * ... log registrations to a custom logfile and
 * ... log user SAML attributes to a custom PostgreSQL database at their initial login.
 
-The main reason for creating this project was the fact, that the identity prodivder at TU Darmstadt does **not** provide an easy to read "displayName" as SAML attribute.
+The main reason for creating this project was the fact, that the identity prodivder (idp) at [Technical University (TU) of Darmstadt](https://www.tu-darmstadt.de/index.en.jsp) does **not** provide an easy to read "displayName" as SAML attribute.
 Therefore, I had to concatenate first- and surname(s) together.
+Some code snippets refer to an identification named *TU-ID* which is the unique id for all students and employees at our university.
+This attribute will most likely be called *uid* within your SAML provider.
 
 Please notice, that the custom PostgreSQL database is **not** the same database as the one used by your Synapse installation!
 
@@ -20,17 +22,15 @@ Of course you are allowed to also use it in production environments, but you've 
 
 ## Installation
 
-* Clone this repository to your local python workspace: `$ git clone https://github.com/maxkratz/matrix-synapse-saml-mapper.git`
+* Clone this repository to your python workspace: `$ git clone https://github.com/maxkratz/matrix-synapse-saml-mapper.git`
 * Adapt `module_config.yml` according to your needs.
-* Install all dependencies with `$ pip3 install -r requirements.txt`.
-* Run `$ python3 setup.py sdist bdsist_wheel`.
-* Copy built files/folders to your system running Synapse.
-* Install the package in your virtual environment.
-    * E.g. for a Matrix installation based on the Debian/Ubuntu package, run `$ /opt/venvs/matrix-synapse/bin/python setup.py install` in your console.
+* Install the package in your virtual environment which is used by Synapse.
+    * E.g. for a Matrix/Synapse installation based on the Debian/Ubuntu package, run `$ /opt/venvs/matrix-synapse/bin/python setup.py install` in your console.
 
 ### Database setup
 
 In order to use this module to log new user registrations (from SAML) to a custom PostgreSQL database, you have to set it up.
+For this example I will use the name `ou` which stands for *organizational unit* but feel free to change this values to your needs.
 
 Keep in mind, that this custom database logging of users is just an additional feature of this module.
 You can always remove/comment out some code if you do not need it.
@@ -44,14 +44,14 @@ You can always remove/comment out some code if you do not need it.
 * Connect to database: `=# \connect ou`
 * Create table with followoing design:
   * `id` is a unique primary key for all entries.
-  * `tuid` is a char with 8 symbols for the unique id at TU Darmstadt. Feel free to change it here **and** within the code according to your needs.
+  * `tuid` is a char with 8 symbols for the unique id at [Technical University (TU) of Darmstadt](https://www.tu-darmstadt.de/index.en.jsp). Feel free to change it here **and** within the code according to your needs.
     * The constraint at the end ensures that this field is always unique.
   * `ou` is an array of text for all departments and organizations etc.
-  * `givenname` is a text for all first names (TU Darmstadts idp concatenates first names together).
-  * `surname` is a text for all surnames (TU Darmstadts idp concatenates surnames together).
+  * `givenname` is a text for all first names ([Technical University (TU) of Darmstadts](https://www.tu-darmstadt.de/index.en.jsp) idp concatenates first names together).
+  * `surname` is a text for all surnames ([Technical University (TU) of Darmstadts](https://www.tu-darmstadt.de/index.en.jsp) idp concatenates surnames together).
   * `email` is an array of text for all email addresses of a person.
   * `edu_person_affiliation` is an array of text for all groups e.g. *student* and *member*.
-  * `created_at` is the timestamp of the insert into this table.
+  * `created_at` is the timestamp of the insertion into this table.
 
 ```
 =# CREATE TABLE user_external_saml (
@@ -87,7 +87,7 @@ You can always remove/comment out some code if you do not need it.
 * `$ chown -R matrix-synapse /var/log/custom-scripts/`
 * `$ chgrp -R nogroup /var/log/custom-scripts/`
 
-Logs can be found in `/var/log/custom-scripts/dummy_logger.log`
+Logs can be found in `/var/log/custom-scripts/dummy_logger.log` (default path).
 
 
 ## Configuration
@@ -109,7 +109,7 @@ Configuration of this module is completely done inside file `module_config.yml`.
 ### Synapse
 
 In order to use the custom module, you have configure Synapse to do so.
-For this example, lets assume the following attributes provided by the identity provider:
+For this example, lets assume the following attributes provided by the identity provider (idp):
 
 * `cn`: This is the unique id, in most systems named *uid*.
 * `mail`: Mail address of the user.
