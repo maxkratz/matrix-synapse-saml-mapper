@@ -4,11 +4,7 @@ stages:
     - test
 
 default:
-    image: python:3.6
-
-before_script:
-    - python --version
-    - pip install -r requirements.txt
+    image: maxkratz/python-custom:3.6
 
 pylint:
     stage: lint
