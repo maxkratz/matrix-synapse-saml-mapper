@@ -29,11 +29,11 @@ import yaml
 # Heavily based on:
 # https://github.com/matrix-org/synapse/blob/master/docs/sso_mapping_providers.md
 #
-# This class only exists, because the HRZ of TU Darmstadt can not provide a
+# This class only exists because the idp of TU Darmstadt cannot provide a
 # 'displayName' value via IDP.
 #
 # It does not log to the synapse logger nor does it throw the expected errors
-# from the synapse package. Please keep in mind, that this code might crash unexpectedly,
+# from the synapse package. Please keep in mind that this code might crash unexpectedly,
 # but you can always check the homeservers log file for python error output.
 
 
@@ -76,10 +76,10 @@ def save_to_custom_db(
     Uses the current time as timestamp for saving to the database.
 
     Args:
-        tuid: TU-ID. This is just one string.
+        tuid: TU-ID. Fancy name for the uid at TU Darmstadt. This is just one string.
         orga_unit: Department. This is an array for e.g. students with two departments.
-        givenname: Given name. Just one string (two names get concatenated by the HRZs IDP).
-        surname: Surname. Just one string (two names get concatenated by the HRZs IDP).
+        givenname: Given name. Just one string (two names get concatenated by the TUs IDP).
+        surname: Surname. Just one string (two names get concatenated by the TUs IDP).
         email: Email address. Array for persons with more than one address.
         edu_person_affiliation: Student/... Array, because most people have 'student' and
         'member'.
@@ -106,9 +106,10 @@ def save_to_custom_db(
 
         conn.commit()
         conn.close()
+
     except Exception as error:
         raise Exception(
-            'Connection to our custom DLZ database could not be established and/or'
+            'Connection to our custom database could not be established and/or'
             'update/insert failed.'
         ) from error
 
@@ -129,7 +130,7 @@ def run_script(tuid: str):
 class SamlMappingProvider:
     """
     This is the heart of our custom mapping provider. Its purpose is to concatenate the attribute
-    "givenName" and "surname" of our HRZs IDP to "<givenName> <surname>".
+    "givenName" and "surname" of our TUs IDP to "<givenName> <surname>".
     """
     def __init__(self, parsed_config: SamlConfig, module_api):
         """
@@ -232,7 +233,7 @@ class SamlMappingProvider:
         # Append suffix integer if last call to this function failed to produce a usable mxid
         localpart = base_mxid_localpart + (str(failures) if failures else "")
 
-        # Get names (custom stuff for our DLZ instance)
+        # Get names (custom stuff for our Matrix instance)
         givenname = saml_response.ava.get("givenName", [None])[0]
         surname = saml_response.ava.get("surname", [None])[0]
 
@@ -245,9 +246,7 @@ class SamlMappingProvider:
         # Retrieve eduPersonAffiliation present in the saml response (array)
         edu_person_affiliation = saml_response.ava.get("eduPersonAffiliation", [])
 
-        #
         # Save the ou(s) to our custom database.
-        #
         orga_unit = saml_response.ava.get("ou", [None])
 
         save_to_custom_db(
