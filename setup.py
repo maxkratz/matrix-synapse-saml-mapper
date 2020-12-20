@@ -25,7 +25,7 @@ with open("README.md", "r") as fh:
 setuptools.setup(
     name="matrix-synapse-saml-mapper",
     version="0.0.5",
-    author="Maximilian Kratz",
+    author="Max Kratz",
     author_email="mkratz@fs-etit.de",
     description="Custom SAML mapping provider for synapse installations",
     long_description=long_description,
