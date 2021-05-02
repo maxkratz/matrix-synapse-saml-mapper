@@ -24,7 +24,8 @@ You are of course allowed to also use it in production environments, but you've 
 
 * Clone this repository to your python workspace
     * e.g. `$ git clone https://github.com/maxkratz/matrix-synapse-saml-mapper.git`
-* Adapt `module_config.yml` according to your needs.
+* Copy `module_config_example.yml` to `/etc/matrix-synapse/saml_mapper_config.yml`.
+* Adapt `/etc/matrix-synapse/saml_mapper_config.yml` according to your needs.
 * Install the package in your virtual environment which is used by Synapse.
     * e.g. for a Matrix/Synapse installation based on the Debian/Ubuntu package, run `$ /opt/venvs/matrix-synapse/bin/python setup.py install` on your console.
 
@@ -125,12 +126,16 @@ MAP = {
         'mail': 'email',
         'surname': 'surname',
         'givenName': 'givenName',
+        'ou': 'ou',
+        'eduPersonAffiliation': 'eduPersonAffiliation',
     },
     "to": {
         'uid': 'cn',
         'mail': 'email',
         'surname': 'surname',
         'givenName': 'givenName',
+        'ou': 'ou',
+        'eduPersonAffiliation': 'eduPersonAffiliation',
     },
 }
 ```
