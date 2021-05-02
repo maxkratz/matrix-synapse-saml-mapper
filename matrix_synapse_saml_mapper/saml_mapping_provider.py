@@ -84,6 +84,10 @@ def save_to_custom_db(
         edu_person_affiliation: Student/... Array, because most people have 'student' and
         'member'.
     """
+    # Check if the custom database is disabled, if true return.
+    if not db_config.get("enabled"):
+        return
+
     # Get current date and time as utc.
     now = datetime.utcnow()
 
@@ -122,9 +126,13 @@ def run_script(tuid: str):
     Args:
         tuid: String of the TU-ID to save.
     """
-    file = open(log_config.get("path"), "a")
-    file.write(tuid + ";" + str(datetime.utcnow()) + os.linesep)
-    file.close()
+    # Check if logging is disabled, if true return.
+    if not log_config.get("enabled"):
+        return
+
+    with open(log_config.get("path"), "a") as file:
+        file.write(tuid + ";" + str(datetime.utcnow()) + os.linesep)
+        file.close()
 
 
 class SamlMappingProvider:
@@ -250,10 +258,10 @@ class SamlMappingProvider:
         orga_unit = saml_response.ava.get("ou", [None])
 
         save_to_custom_db(
-            mxid_source, orga_unit, givenname, surname, emails, edu_person_affiliation
+           mxid_source, orga_unit, givenname, surname, emails, edu_person_affiliation
         )
 
-        # Trigger custom script here!
+        # Trigger custom script here
         run_script(mxid_source)
 
         return {
