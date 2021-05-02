@@ -125,12 +125,16 @@ MAP = {
         'mail': 'email',
         'surname': 'surname',
         'givenName': 'givenName',
+        'ou': 'ou',
+        'eduPersonAffiliation': 'eduPersonAffiliation',
     },
     "to": {
         'uid': 'cn',
         'mail': 'email',
         'surname': 'surname',
         'givenName': 'givenName',
+        'ou': 'ou',
+        'eduPersonAffiliation': 'eduPersonAffiliation',
     },
 }
 ```
