@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2020 Max Kratz
+# Copyright 2021 Max Kratz
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import yaml
 # but you can always check the homeservers log file for python error output.
 
 
-module_config = yaml.safe_load(open("../module_config.yml"))
+module_config = yaml.safe_load(open("/etc/matrix-synapse/saml_mapper_config.yml"))
 db_config = module_config.get("db")
 log_config = module_config.get("log")
 
