@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2020 Max Kratz
+# Copyright 2021 Max Kratz
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="matrix-synapse-saml-mapper",
-    version="0.0.5",
+    version="0.1.0",
     author="Max Kratz",
     author_email="mkratz@fs-etit.de",
     description="Custom SAML mapping provider for synapse installations",
