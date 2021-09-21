@@ -18,6 +18,7 @@ This module will be used to map custom SAML attributes.
 """
 
 import os
+import logging
 from datetime import datetime
 from typing import Set, Tuple
 
@@ -40,6 +41,7 @@ import yaml
 # crash unexpectedly, but you can always check the homeservers log file for python
 # error output.
 
+logger = logging.getLogger(__name__)
 
 module_config = yaml.safe_load(open("/etc/matrix-synapse/saml_mapper_config.yml"))
 db_config = module_config.get("db")
@@ -108,6 +110,7 @@ def save_to_custom_db(
         conn.close()
 
     except Exception as error:
+        logger.warning("Custom database insert/connection error")
         raise Exception(
             'Connection to our custom database could not be established and/or'
             'update/insert failed.'
@@ -151,7 +154,7 @@ class SamlMappingProvider:
     def parse_config(config: dict) -> SamlConfig:
         """
         Parses a given dictionary (config) to our own SamlConfig format. The dictionary is the
-        output of the config section in homeserver.yml/saml2...
+        output of the config section in homeserver.yaml/saml2...
 
         Args:
             config: A dict representing the parsed content of the
@@ -204,6 +207,7 @@ class SamlMappingProvider:
         try:
             return saml_response.ava[self._mxid_source_attribute][0]
         except KeyError as key_error:
+            logger.warning("'%s' not in SAML2 response", self._mxid_source_attribute)
             raise MappingException(
                 f"{self._mxid_source_attribute} not in SAML2 response") from key_error
 
@@ -236,6 +240,7 @@ class SamlMappingProvider:
         try:
             mxid_source = saml_response.ava[self._mxid_source_attribute][0]
         except KeyError as key_error:
+            logger.warning("'%s' not in SAML2 response", self._mxid_source_attribute)
             raise SynapseError(
                 400, f"{self._mxid_source_attribute} not in SAML2 response"
             ) from key_error
