@@ -182,7 +182,14 @@ class SamlMappingProvider:
             module to function, whereas the second set consists of those attributes which can be
             used if available, but are not necessary
         """
-        return {config.mxid_source_attribute, "surname", "givenName", "mail"}, {"ou"}
+        return {
+            config.mxid_source_attribute,
+            "surname",
+            "givenName",
+            "mail",
+            "ou",
+            "eduPersonAffiliation"
+            }, {}
 
     def get_remote_user_id(
             self, saml_response: saml2.response.AuthnResponse, client_redirect_url: str
