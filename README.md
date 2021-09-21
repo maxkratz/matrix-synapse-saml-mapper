@@ -126,7 +126,7 @@ MAP = {
     "identifier": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
     "fro": {
         'urn:oid:2.5.4.3': 'uid',
-        'urn:oid:0.9.2342.19200300.100.1.3': 'mail',
+        'urn:oid:0.9.2342.19200300.100.1.3': 'email',
         'urn:oid:2.5.4.4': 'surname',
         'urn:oid:2.5.4.42': 'givenName',
         'urn:oid:2.5.4.11': 'ou',
@@ -135,7 +135,7 @@ MAP = {
     },
     "to": {
         'uid': 'urn:oid:2.5.4.3',
-        'mail': 'urn:oid:0.9.2342.19200300.100.1.3',
+        'email': 'urn:oid:0.9.2342.19200300.100.1.3',
         'surname': 'urn:oid:2.5.4.4',
         'givenName': 'urn:oid:2.5.4.42',
         'ou': 'urn:oid:2.5.4.11',
@@ -150,7 +150,7 @@ Please keep in mind that this module expects this seven values (after mapping):
 * `uid`
 * `surname`
 * `givenName`
-* `mail`
+* `email`
 * `ou`
 * `eduPersonAffiliation`
 * `eduPersonScopedAffiliation` (optional)

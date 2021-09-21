@@ -186,7 +186,7 @@ class SamlMappingProvider:
             config.mxid_source_attribute,
             "surname",
             "givenName",
-            "mail",
+            "email",
             "ou",
             "eduPersonAffiliation"
             }, {"eduPersonScopedAffiliation"}
