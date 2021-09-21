@@ -7,3 +7,4 @@ pysaml2>=6.3.0
 PyYAML>=5.3
 setuptools
 wheel
+matrix-synapse>=1.42.0

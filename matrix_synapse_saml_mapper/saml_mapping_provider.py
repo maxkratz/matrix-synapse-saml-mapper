@@ -14,12 +14,17 @@
 # limitations under the License.
 
 """
-This module will be used to map custom saml attributes.
+This module will be used to map custom SAML attributes.
 """
 
 import os
+import logging
 from datetime import datetime
 from typing import Set, Tuple
+
+from synapse.handlers.sso import MappingException
+from synapse.module_api import ModuleApi
+from synapse.api.errors import SynapseError
 
 import attr
 import psycopg2
@@ -29,13 +34,14 @@ import yaml
 # Heavily based on:
 # https://github.com/matrix-org/synapse/blob/master/docs/sso_mapping_providers.md
 #
-# This class only exists because the idp of TU Darmstadt cannot provide a
-# 'displayName' value via IDP.
+# This class only exists because the IDP of TU Darmstadt cannot provide a
+# 'displayName' value via SAML.
 #
-# It does not log to the synapse logger nor does it throw the expected errors
-# from the synapse package. Please keep in mind that this code might crash unexpectedly,
-# but you can always check the homeservers log file for python error output.
+# It does not log to the synapse logger. Please keep in mind that this code might
+# crash unexpectedly, but you can always check the homeservers log file for python
+# error output.
 
+logger = logging.getLogger(__name__)
 
 module_config = yaml.safe_load(open("/etc/matrix-synapse/saml_mapper_config.yml"))
 db_config = module_config.get("db")
@@ -47,18 +53,10 @@ class SamlConfig:
     # This is just a config attribute, thus it does not need public methods.
     # pylint: disable=R0903
     """
-    Used to configure the Matrix id source attribute.
+    Used to configure the Matrix ID source attribute.
     This value will later be passed by the homeserver.yml configuration file.
     """
     mxid_source_attribute = attr.ib()
-
-
-class MappingException(Exception):
-    """
-    Used to catch errors when mapping the SAML2 response to a user.
-    Maybe this will lead to incompatibility with the class within the synapse package,
-    but it works for now.
-    """
 
 
 def save_to_custom_db(
@@ -76,8 +74,8 @@ def save_to_custom_db(
     Uses the current time as timestamp for saving to the database.
 
     Args:
-        tuid: TU-ID. Fancy name for the uid at TU Darmstadt. This is just one string.
-        orga_unit: Department. This is an array for e.g. students with two departments.
+        tuid: TU-ID. Fancy name for the UID at TU Darmstadt. This is just one string.
+        orga_unit: Department. This is an array for, e.g., students with two departments.
         givenname: Given name. Just one string (two names get concatenated by the TUs IDP).
         surname: Surname. Just one string (two names get concatenated by the TUs IDP).
         email: Email address. Array for persons with more than one address.
@@ -112,6 +110,7 @@ def save_to_custom_db(
         conn.close()
 
     except Exception as error:
+        logger.warning("Custom database insert/connection error")
         raise Exception(
             'Connection to our custom database could not be established and/or'
             'update/insert failed.'
@@ -140,7 +139,7 @@ class SamlMappingProvider:
     This is the heart of our custom mapping provider. Its purpose is to concatenate the attribute
     "givenName" and "surname" of our TUs IDP to "<givenName> <surname>".
     """
-    def __init__(self, parsed_config: SamlConfig, module_api):
+    def __init__(self, parsed_config: SamlConfig, module_api: ModuleApi):
         """
         Initializes the class with a given parsed SamlConfig.
 
@@ -155,7 +154,7 @@ class SamlMappingProvider:
     def parse_config(config: dict) -> SamlConfig:
         """
         Parses a given dictionary (config) to our own SamlConfig format. The dictionary is the
-        output of the config section in homeserver.yml/saml2...
+        output of the config section in homeserver.yaml/saml2...
 
         Args:
             config: A dict representing the parsed content of the
@@ -197,7 +196,7 @@ class SamlMappingProvider:
         # This method declaration is given by synapses documentation.
         # pylint: disable=R0201
         """
-        Extracts the user id from a given saml2.response.AuthnResponse object.
+        Extracts the user ID from a given saml2.response.AuthnResponse object.
 
         Args:
             saml_response: A saml2.response.AuthnResponse object to extract user information
@@ -206,9 +205,11 @@ class SamlMappingProvider:
             will not be used.
         """
         try:
-            return saml_response.ava["uid"][0]
+            return saml_response.ava[self._mxid_source_attribute][0]
         except KeyError as key_error:
-            raise MappingException("'uid' not in SAML2 response") from key_error
+            logger.warning("'%s' not in SAML2 response", self._mxid_source_attribute)
+            raise MappingException(
+                f"{self._mxid_source_attribute} not in SAML2 response") from key_error
 
     def saml_response_to_user_attributes(
             self,
@@ -239,29 +240,30 @@ class SamlMappingProvider:
         try:
             mxid_source = saml_response.ava[self._mxid_source_attribute][0]
         except KeyError as key_error:
-            raise AttributeError(
-                400, "%s not in SAML2 response" % (self._mxid_source_attribute,)
+            logger.warning("'%s' not in SAML2 response", self._mxid_source_attribute)
+            raise SynapseError(
+                400, f"{self._mxid_source_attribute} not in SAML2 response"
             ) from key_error
 
         base_mxid_localpart = mxid_source
 
-        # Append suffix integer if last call to this function failed to produce a usable mxid
+        # Append suffix integer if last call to this function failed to produce a usable MXID
         localpart = base_mxid_localpart + (str(failures) if failures else "")
 
         # Get names (custom stuff for our Matrix instance)
         givenname = saml_response.ava.get("givenName", [None])[0]
         surname = saml_response.ava.get("surname", [None])[0]
 
-        # Retrieve the display name from the saml responses given and surname
+        # Retrieve the display name from the SAML responses given and surname
         displayname = givenname + " " + surname
 
-        # Retrieve any emails present in the saml response (array)
+        # Retrieve any emails present in the SAML response (array)
         emails = saml_response.ava.get("email", [])
 
-        # Retrieve eduPersonAffiliation present in the saml response (array)
+        # Retrieve eduPersonAffiliation present in the SAML response (array)
         edu_person_affiliation = saml_response.ava.get("eduPersonAffiliation", [])
 
-        # Save the ou(s) to our custom database.
+        # Save the OU(s) to our custom database.
         orga_unit = saml_response.ava.get("ou", [None])
 
         save_to_custom_db(
