@@ -9,7 +9,7 @@ A Synapse plugin module which allows administrators to ...
 
 The main reason for creating this project was the fact that the identity provider (idp) at the [Technical University (TU) Darmstadt](https://www.tu-darmstadt.de/index.en.jsp) does **not** provide an easy to read "displayName" as a SAML attribute.
 Therefore,  first- and surname(s) had to be concatenated manually to populate the "displayName" fields.
-Some code snippets found herein refer to an identification named *TU-ID* which is the unique id for all students and employees at our university.
+Some code snippets found herein refer to an identification named *TU-ID* which is the unique ID for all students and employees at our university.
 This attribute will most likely be called *uid* within your SAML provider.
 
 Please note that the custom PostgreSQL database is **not** the same database as the one used by your Synapse installation!
@@ -111,10 +111,13 @@ Configuration of this module is completely done inside file `module_config.yml`.
 In order to use the custom module, you have configure Synapse to do so.
 For this example let's assume the following attributes provided by the identity provider (idp):
 
-* `cn`: This is the unique id, in most systems named *uid*.
-* `mail`: Mail address of the user.
-* `surname`: Surname(s) of the user.
-* `givenName`: Given name(s) of the user.
+* `cn` or `urn:oid:2.5.4.3`: This is the unique ID, in most systems named *uid*.
+* `mail` or `urn:oid:0.9.2342.19200300.100.1.3`: Mail address of the user.
+* `surname` or `urn:oid:2.5.4.4`: Surname(s) of the user.
+* `givenName` or `urn:oid:2.5.4.42`: Given name(s) of the user.
+* `ou` or `urn:oid:2.5.4.11`: Organizational unit of the user.
+* `eduPersonAffiliation` or `urn:oid:1.3.6.1.4.1.5923.1.1.1.1`: Affiliation of the user like `student`.
+* `eduPersonScopedAffiliation` or `urn:oid:1.3.6.1.4.1.5923.1.1.1.9`: Scoped affiliation of the user like `member@tu-darmstadt.de`.
 
 Change the SAML2 attribute map in `/etc/matrix-synapse/saml2-attribute-maps/map.py`:
 
@@ -122,30 +125,35 @@ Change the SAML2 attribute map in `/etc/matrix-synapse/saml2-attribute-maps/map.
 MAP = {
     "identifier": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
     "fro": {
-        'cn': 'uid',
-        'mail': 'email',
-        'surname': 'surname',
-        'givenName': 'givenName',
-        'ou': 'ou',
-        'eduPersonAffiliation': 'eduPersonAffiliation',
+        'urn:oid:2.5.4.3': 'uid',
+        'urn:oid:0.9.2342.19200300.100.1.3': 'mail',
+        'urn:oid:2.5.4.4': 'surname',
+        'urn:oid:2.5.4.42': 'givenName',
+        'urn:oid:2.5.4.11': 'ou',
+        'urn:oid:1.3.6.1.4.1.5923.1.1.1.1': 'eduPersonAffiliation',
+        'urn:oid:1.3.6.1.4.1.5923.1.1.1.9': 'eduPersonScopedAffiliation'
     },
     "to": {
-        'uid': 'cn',
-        'mail': 'email',
-        'surname': 'surname',
-        'givenName': 'givenName',
-        'ou': 'ou',
-        'eduPersonAffiliation': 'eduPersonAffiliation',
+        'uid': 'urn:oid:2.5.4.3',
+        'mail': 'urn:oid:0.9.2342.19200300.100.1.3',
+        'surname': 'urn:oid:2.5.4.4',
+        'givenName': 'urn:oid:2.5.4.42',
+        'ou': 'urn:oid:2.5.4.11',
+        'eduPersonAffiliation': 'urn:oid:1.3.6.1.4.1.5923.1.1.1.1',
+        'eduPersonScopedAffiliation' : 'urn:oid:1.3.6.1.4.1.5923.1.1.1.9',
     },
 }
 ```
 
-Please keep in mind that this module expects this four values (after mapping):
+Please keep in mind that this module expects this seven values (after mapping):
 
 * `uid`
-* `email`
 * `surname`
 * `givenName`
+* `mail`
+* `ou`
+* `eduPersonAffiliation`
+* `eduPersonScopedAffiliation` (optional)
 
 Edit the following values in your `homeserver.yml` file:
 
@@ -162,6 +170,17 @@ saml2_config:
 ```
 
 Restart your Synapse server after all configuration changes.
+
+Please keep in mind that all required or optional SAML attributes are handled by this mapper, i.e., you can not specify more or other attributes in your `homeserver.yaml` file.
+To prevent misunderstandings, this will **not** work while using this mapper:
+```
+saml2_config:
+  [...]
+   service:
+       sp:
+         required_attributes: ["attribute-1"]
+         optional_attributes: ["attribute-2"]
+```
 
 
 ## Codestyle
