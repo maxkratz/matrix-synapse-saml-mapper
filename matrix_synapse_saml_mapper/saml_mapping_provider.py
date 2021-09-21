@@ -21,6 +21,10 @@ import os
 from datetime import datetime
 from typing import Set, Tuple
 
+from synapse.module_api import ModuleApi
+from synapse.api.errors import SynapseError
+from synapse.config import ConfigError
+
 import attr
 import psycopg2
 import saml2.response
