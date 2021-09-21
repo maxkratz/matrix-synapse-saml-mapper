@@ -21,6 +21,7 @@ import os
 from datetime import datetime
 from typing import Set, Tuple
 
+from synapse.handlers.sso import MappingException
 from synapse.module_api import ModuleApi
 from synapse.api.errors import SynapseError
 
@@ -54,14 +55,6 @@ class SamlConfig:
     This value will later be passed by the homeserver.yml configuration file.
     """
     mxid_source_attribute = attr.ib()
-
-
-class MappingException(Exception):
-    """
-    Used to catch errors when mapping the SAML2 response to a user.
-    Maybe this will lead to incompatibility with the class within the synapse package,
-    but it works for now.
-    """
 
 
 def save_to_custom_db(
@@ -209,9 +202,10 @@ class SamlMappingProvider:
             will not be used.
         """
         try:
-            return saml_response.ava["uid"][0]
+            return saml_response.ava[self._mxid_source_attribute][0]
         except KeyError as key_error:
-            raise MappingException("'uid' not in SAML2 response") from key_error
+            raise MappingException(
+                f"{self._mxid_source_attribute} not in SAML2 response") from key_error
 
     def saml_response_to_user_attributes(
             self,
@@ -243,7 +237,7 @@ class SamlMappingProvider:
             mxid_source = saml_response.ava[self._mxid_source_attribute][0]
         except KeyError as key_error:
             raise SynapseError(
-                400, "%s not in SAML2 response" % (self._mxid_source_attribute,)
+                400, f"{self._mxid_source_attribute} not in SAML2 response"
             ) from key_error
 
         base_mxid_localpart = mxid_source
