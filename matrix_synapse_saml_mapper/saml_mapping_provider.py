@@ -189,7 +189,7 @@ class SamlMappingProvider:
             "mail",
             "ou",
             "eduPersonAffiliation"
-            }, {}
+            }, {"eduPersonScopedAffiliation"}
 
     def get_remote_user_id(
             self, saml_response: saml2.response.AuthnResponse, client_redirect_url: str
