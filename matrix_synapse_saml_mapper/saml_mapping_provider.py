@@ -114,7 +114,7 @@ def save_to_custom_db(
     except Exception as error:
         logger.warning("Custom database insert/connection error")
         raise Exception(
-            'Connection to our custom database could not be established and/or'
+            'Connection to our custom database could not be established and/or '
             'update/insert failed.'
         ) from error
 
