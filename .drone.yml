@@ -4,13 +4,13 @@ name: default
 
 steps:
 - name: lint
-  image: python:3.6
+  image: python:3.8
   commands:
   - &setup pip install -r requirements.txt
   - pylint --fail-under=9.0 -d pep8 matrix_synapse_saml_mapper/*.py setup.py
 
 - name: build
-  image: python:3.6
+  image: python:3.8
   commands:
   - *setup
   - python setup.py sdist bdist_wheel
@@ -18,7 +18,7 @@ steps:
   - lint
 
 - name: test
-  image: python:3.6
+  image: python:3.8
   commands:
   - *setup
   - python setup.py install
