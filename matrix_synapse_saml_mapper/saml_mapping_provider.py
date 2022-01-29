@@ -72,6 +72,7 @@ def save_to_custom_db(
     """
     Saves the provided information from SAML to our custom database.
     Uses the current time as timestamp for saving to the database.
+    If the database already contains an entry for the given tuid, nothing happens.
 
     Args:
         tuid: TU-ID. Fancy name for the UID at TU Darmstadt. This is just one string.
@@ -102,7 +103,8 @@ def save_to_custom_db(
         cur.execute(
             """INSERT INTO user_external_saml (
             tuid, ou, givenname, surname, email, edu_person_affiliation, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s);""",
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT DO NOTHING;""",
             (tuid, orga_unit, givenname, surname, email, edu_person_affiliation, now)
         )
 
@@ -112,7 +114,7 @@ def save_to_custom_db(
     except Exception as error:
         logger.warning("Custom database insert/connection error")
         raise Exception(
-            'Connection to our custom database could not be established and/or'
+            'Connection to our custom database could not be established and/or '
             'update/insert failed.'
         ) from error
 
