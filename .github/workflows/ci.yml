@@ -15,10 +15,8 @@ jobs:
         uses: actions/checkout@v3
       - name: Set up
         run: docker pull python:3.8
-      - name: Set up
-        run: pip install -r requirements.txt
       - name: Lint
-        run: docker run --rm -v $PWD:/data python:3.8 bash -c "cd /data && pip install -r requirements && pylint --fail-under=9.0 -d pep8 matrix_synapse_saml_mapper/*.py setup.py"
+        run: docker run --rm -v $PWD:/data python:3.8 bash -c "cd /data && pip install -r requirements.txt && pylint --fail-under=9.0 -d pep8 matrix_synapse_saml_mapper/*.py setup.py"
 
   build:
     runs-on: [ubuntu-22.04]
