@@ -1,4 +1,4 @@
-name: Build Docker images
+name: CI Pipeline
 on:
   push:
     branches:

@@ -1,6 +1,6 @@
 # Matrix Synapse SAML Mapper
 
-[![Build Docker images](https://github.com/maxkratz/matrix-synapse-saml-mapper/actions/workflows/ci.yml/badge.svg)](https://github.com/maxkratz/matrix-synapse-saml-mapper/actions/workflows/ci.yml)
+[![CI Pipeline](https://github.com/maxkratz/matrix-synapse-saml-mapper/actions/workflows/ci.yml/badge.svg)](https://github.com/maxkratz/matrix-synapse-saml-mapper/actions/workflows/ci.yml)
 
 A Synapse plugin module which allows administrators to ...
 * ... concatenate and/or modify provided SAML attributes,
