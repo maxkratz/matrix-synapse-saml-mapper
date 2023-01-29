@@ -51,4 +51,4 @@ jobs:
         with:
           name: python-build
       - name: Test installation
-        run: python setup.py install
+        run: sudo python setup.py install
