@@ -1,0 +1,54 @@
+name: CI Pipeline
+on:
+  push:
+    branches:
+      - 'main'
+      - 'testing/**'
+      - 'feature/**'
+      - 'hotfix/**'
+
+jobs:
+  lint:
+    runs-on: [ubuntu-22.04]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up
+        run: docker pull python:3.8
+      - name: Lint
+        run: docker run --rm -v $PWD:/data python:3.8 bash -c "cd /data && pip install -r requirements.txt && pylint --fail-under=9.0 -d pep8 matrix_synapse_saml_mapper/*.py setup.py"
+
+  build:
+    runs-on: [ubuntu-22.04]
+    needs: [lint]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up
+        run: pip install -r requirements.txt
+      - name: Build
+        run: python setup.py sdist bdist_wheel
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: python-build
+          path: |
+            build/
+            dist/
+            matrix_synapse_saml_mapper/
+            matrix_synapse_saml_mapper.egg-info
+
+  test-install:
+    runs-on: [ubuntu-22.04]
+    needs: [build]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up
+        run: pip install -r requirements.txt
+      - name: Download build
+        uses: actions/download-artifact@v3
+        with:
+          name: python-build
+      - name: Test installation
+        run: sudo python setup.py install
