@@ -12,7 +12,7 @@ jobs:
     runs-on: [ubuntu-22.04]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up
         run: docker pull python:3.8
       - name: Lint
@@ -23,13 +23,13 @@ jobs:
     needs: [lint]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up
         run: pip install -r requirements.txt
       - name: Build
         run: python setup.py sdist bdist_wheel
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: python-build
           path: |
@@ -43,11 +43,11 @@ jobs:
     needs: [build]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up
         run: pip install -r requirements.txt
       - name: Download build
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: python-build
       - name: Test installation
